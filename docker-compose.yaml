@@ -1,0 +1,36 @@
+version: "3"
+services:
+  rabbitmq:
+    image: rabbitmq:3.13.1-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=rmuser
+      - RABBITMQ_DEFAULT_PASS=rmpassword
+    ports:
+      - 15672:15672
+      - 5672:5672
+
+  sub:
+    build:
+      context: ./pub_sub
+    volumes:
+      - type: bind
+        source : ./pub_sub
+        target : /pub_sub
+    depends_on:
+      - rabbitmq
+    environment:
+      - HOST=rabbitmq
+    command: sh -c "sleep 30 && python consumer.py"
+
+  pub:
+    build:
+      context: ./pub_sub
+    volumes:
+      - type: bind
+        source : ./pub_sub
+        target : /pub_sub
+    depends_on:
+      - rabbitmq
+    environment:
+      - HOST=rabbitmq
+    command: sh -c "sleep 30 && python sender.py"
